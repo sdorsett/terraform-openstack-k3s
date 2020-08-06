@@ -1,0 +1,31 @@
+- hosts: 127.0.0.1   
+  become: true
+  become_user: root
+  connection: local
+  gather_facts: no
+
+  roles:
+    - kubectl
+
+  tasks:
+    - name: Make sure inventory hosts are updated in /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        state: present
+        regexp: ".*{{ hostvars[item]['inventory_hostname'] }}$"
+        line: "{{ hostvars[item]['ansible_ssh_host'] }} {{ hostvars[item]['inventory_hostname'] }}"
+      with_items:
+        - "{{ groups['all'] }}"
+    - name: create /home/ubuntu/.kube/
+      file:
+        path: /home/ubuntu/.kube
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+    - name: Copy ansible/kube-config to /root/.kube/config
+      shell: cp {{ playbook_dir }}/transfer/kube-config /home/ubuntu/.kube/config
+    - name: Update /home/ubuntu/.kube/config with haproxy external IP address
+      lineinfile:
+        path: /home/ubuntu/.kube/config
+        regexp: '    server: https://127.0.0.1:6443'
+        line: "    server: https://{{ hostvars['haproxy-api']['ansible_ssh_host'] }}:6443"

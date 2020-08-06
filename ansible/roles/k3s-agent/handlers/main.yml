@@ -1,0 +1,8 @@
+---
+# file: roles/k3s-server/handlers/main.yml
+- name: restart k3s
+  systemd:
+    state: started
+    name: k3s
+    daemon_reload: yes
+    enabled: yes

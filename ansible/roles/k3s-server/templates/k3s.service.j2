@@ -1,0 +1,29 @@
+[Unit]
+Description=Lightweight Kubernetes
+Documentation=https://k3s.io
+Wants=network-online.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=notify
+EnvironmentFile=/etc/systemd/system/k3s.service.env
+KillMode=process
+Delegate=yes
+LimitNOFILE=infinity
+LimitNPROC=infinity
+LimitCORE=infinity
+TasksMax=infinity
+TimeoutStartSec=0
+Restart=always
+RestartSec=5s
+ExecStartPre=-/sbin/modprobe br_netfilter
+ExecStartPre=-/sbin/modprobe overlay
+ExecStart=/usr/local/bin/k3s \
+    server \
+    --kube-apiserver-arg "runtime-config=apps/v1beta1=true,apps/v1beta2=true,extensions/v1beta1/daemonsets=true,extensions/v1beta1/deployments=true,extensions/v1beta1/replicasets=true,extensions/v1beta1/networkpolicies=true,extensions/v1beta1/podsecuritypolicies=true" \
+    --advertise-address "{{ hostvars['controller-0']['openstack']['addresses']['default-internal'][0]['addr'] }}" \
+    --tls-san "{{ hostvars['haproxy-api']['ansible_ssh_host'] }}" \
+    --no-deploy traefik \
+    --no-deploy servicelb

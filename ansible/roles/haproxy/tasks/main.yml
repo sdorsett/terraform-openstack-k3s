@@ -1,0 +1,27 @@
+---
+# file: roles/haproxy/tasks/main.yml
+- name: Install aptitude to prevent apt warnings
+  apt:
+    name: haproxy
+    state: present
+    update_cache: true
+- name: Create haproxy-api config
+  template:
+    src: haproxy-api.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: '0644'
+  when: inventory_hostname == 'haproxy-api'
+  notify: 
+    - restart haproxy
+- name: Create haproxy-webserver config
+  template:
+    src: haproxy-webserver.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: '0644'
+  when: inventory_hostname == 'haproxy-webserver'
+  notify:
+    - restart haproxy

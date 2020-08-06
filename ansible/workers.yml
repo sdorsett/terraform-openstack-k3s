@@ -1,0 +1,10 @@
+---
+# file: workers.yml
+- hosts: workers
+  remote_user: ubuntu
+  become: true
+  become_user: root
+  roles:
+    - common
+    - k3s-agent
+
